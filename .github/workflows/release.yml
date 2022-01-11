@@ -1,0 +1,27 @@
+name: Release new JAR to GitHub Packages
+on:
+  push:
+    tags:
+      - "v*"
+env:
+  GITHUB_USERNAME: AntonOellerer
+
+jobs:
+  gradle-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 17
+          distribution: 'zulu'
+      - uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build -x test -x check publish
+      - uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.DSP_RELEASE_TOKEN }}
+          prerelease: false
+          files: |
+            .build/libs/*.jar
+            License.md
