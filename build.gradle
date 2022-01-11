@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.6.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'maven-publish'
 }
 
 group = 'com.docutools'
@@ -21,10 +22,45 @@ dependencies {
 			replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
 		}
 	}
-
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-test {
-	useJUnitPlatform()
+publishing {
+	repositories {
+		maven {
+			name = "GitHubPackages"
+			url "https://maven.pkg.github.com/dds-gmbh/spring-docker-secrets-properties"
+			credentials {
+				username = project.findProperty("GITHUB_USERNAME") ?: System.getenv("GITHUB_USERNAME")
+				password = project.findProperty("GITHUB_TOKEN") ?: System.getenv("GITHUB_TOKEN")
+			}
+		}
+	}
+	publications {
+		gpr(MavenPublication) {
+			from(components.java)
+			artifactId = 'spring-docker-secrets-properties'
+			versionMapping {
+				usage('java-api') {
+					fromResolutionOf('runtimeClasspath')
+				}
+				usage('java-runtime') {
+					fromResolutionResult()
+				}
+			}
+		}
+	}
+}
+
+
+java {
+	withSourcesJar()
+	withJavadocJar()
+}
+
+bootJar {
+	enabled = false
+}
+
+jar {
+	enabled = true
 }

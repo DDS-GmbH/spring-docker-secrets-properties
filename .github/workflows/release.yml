@@ -16,6 +16,8 @@ jobs:
           java-version: 17
           distribution: 'zulu'
       - uses: gradle/gradle-build-action@v2
+        env:
+          GITHUB_TOKEN:  ${{ secrets.DSP_RELEASE_TOKEN }}
         with:
           arguments: build -x test -x check publish
       - uses: marvinpinto/action-automatic-releases@latest
