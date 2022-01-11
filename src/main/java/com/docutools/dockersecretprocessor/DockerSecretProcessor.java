@@ -6,8 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -32,27 +30,25 @@ import org.springframework.core.env.MapPropertySource;
  * @since 2021-10-12
  */
 public class DockerSecretProcessor implements EnvironmentPostProcessor {
-  private static final Logger log = LogManager.getLogger();
-
   private static final String BIND_PATH_PROP_NAME = "docker.secret.bind-path";
 
   private static String buildPropertyName(Path path) {
     var secretName = "docker-secret-" + path.getFileName();
-    log.info("DockerSecretProcessor: Registered docker secret " + secretName);
+    System.out.println("DockerSecretProcessor: Registered docker secret " + secretName);
     return secretName;
   }
 
   @Override
   public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
     var bindPathProp = environment.getProperty(BIND_PATH_PROP_NAME);
-    log.info("DockerSecretProcessor: value of \"docker.secret.bind-path\" property:" + bindPathProp);
+    System.out.println("DockerSecretProcessor: value of \"docker.secret.bind-path\" property:" + bindPathProp);
     if (bindPathProp == null) {
       return;
     }
 
     Path bindPath = Paths.get(bindPathProp);
     if (!Files.isDirectory(bindPath)) {
-      log.error("exiting DockerSecretProcessor: \"docker.secret.bind-path\"={} is not a directory%n", bindPathProp);
+      System.err.printf("exiting DockerSecretProcessor: \"docker.secret.bind-path\"=%S is not a directory%n", bindPathProp);
     }
 
     try {
@@ -60,13 +56,14 @@ public class DockerSecretProcessor implements EnvironmentPostProcessor {
         try {
           return Files.readString(path).trim();
         } catch (IOException e) {
-          log.error(e);
+          System.err.printf("Error reading secret: %s", e.getMessage());
           throw new RuntimeException(e);
         }
       }));
       environment.getPropertySources().addLast(new MapPropertySource("docker-secrets", dockerSecrets));
+      System.out.println("Done loading docker secrets");
     } catch (IOException e) {
-      log.error("Failed to load docker secrets.", e);
+      System.err.printf("Failed to load docker secrets. %s", e.getMessage());
     }
   }
 }
