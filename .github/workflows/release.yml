@@ -17,7 +17,8 @@ jobs:
           distribution: 'zulu'
       - uses: gradle/gradle-build-action@v2
         env:
-          GITHUB_TOKEN:  ${{ secrets.DSP_RELEASE_TOKEN }}
+          AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
           arguments: build -x test -x check publish
       - uses: marvinpinto/action-automatic-releases@latest
